@@ -1,3 +1,6 @@
+from datetime import datetime, timedelta
+
+
 class Book:
     def __init__(self, id, name, return_date=None):
         self.id = id
@@ -86,8 +89,8 @@ class Collection:
         current = self.head
         while current:
             if current.id == id:
-                return_date = input("Enter return date: ")
-                current.return_date = return_date
+                return_date = datetime.now() + timedelta(days=return_days)
+                current.return_date = return_date.strftime("%d/%m/%Y")
                 current.is_borrowed = True
                 print(f"Book {id} borrowed, return date: {return_date}")
                 return
@@ -169,20 +172,37 @@ class Library:
                 return current
             current = current.next
         return None
+    
     def sort_list_by_id(self):
         if self.users_head is None or self.users_head.next is None:
             return
-        
+
         changed = True
         while changed:
             changed = False
             current = self.users_head
             while current and current.next:
                 if current.id > current.next.id:
-                    current.id, current.next.id = current.next.id, current.id
-                    current.name, current.next.name = current.next.name, current.name
+                    if current.previous:
+                        current.previous.next = current.next
+                    if current.next.next:
+                        current.next.next.previous = current
+                    
+                    temp = current.next
+                    current.next = temp.next
+                    temp.next = current
+                    temp.previous = current.previous
+                    current.previous = temp
+
+                    if temp.previous is None:
+                        self.users_head = temp
+                    if current.next is None:
+                        self.users_tail = current
+
                     changed = True
-                current = current.next
+                else:
+                    current = current.next
+
 
 
 
@@ -226,15 +246,30 @@ def main():
                     print("\nOptions for managing books:")
                     print("1: Show Collection")
                     print("2: Borrow Book")
-                    print("3: Return to Main Menu")
+                    print("3: Add new book")
+                    print("4: Remove book")
+                    print("5: Search book by ID")
+                    print("6: Return to Main Menu")
                     sub_option = int(input("Choose an option: "))
                     
                     if sub_option == 1:
                         library.collection.show_collection()
                     elif sub_option == 2:
                         book_id = int(input("Enter book ID to borrow: "))
-                        library.collection.borrow_book(book_id, 14)  # Example: return in 14 days
+                        return_days = int(input("Enter number of days to return book: "))
+                        library.collection.borrow_book(book_id, return_days)
                     elif sub_option == 3:
+                        book_id = int(input("Enter book ID to add: "))
+                        book_name = input("Enter book name to add: ")
+                        library.collection.add_new_book(book_id, book_name)
+                        print("Book added successfully")
+                    elif sub_option == 4:
+                        book_id = int(input("Enter book ID to remove: "))
+                        library.collection.remove_book(book_id)
+                    elif sub_option == 5:
+                        book_id = int(input("Enter book ID to search: "))
+                        library.collection.search_book(book_id)
+                    elif sub_option == 6:
                         break
                     else:
                         print("Invalid option! Please try again.")
