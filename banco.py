@@ -1,3 +1,4 @@
+#Prova de hoje
 class Node:
     def __init__(self, id, balance, name, credit):
         self.id = id
